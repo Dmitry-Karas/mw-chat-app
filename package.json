@@ -1,0 +1,17 @@
+{
+  "name": "test-task",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/Dmitry-Karas/test-task.git",
+  "author": "Dmitry <dmitrythekaras@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "concurrently": "^6.2.1",
+    "nanoid": "^3.1.25"
+  },
+  "scripts": {
+    "server": "yarn --cwd server dev",
+    "client": "yarn --cwd client start",
+    "start": "concurrently \"yarn server\" \"yarn client\""
+  }
+}
