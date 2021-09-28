@@ -7,7 +7,7 @@ import DoNotDisturbOffIcon from "@mui/icons-material/DoNotDisturbOff";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 
-const UsersItem = ({ user, isOnline, isAdmin, onBan, onMute }) => {
+const UsersItem = ({ user, onlineUser, isAdmin, onBan, onMute }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isBanned, setIsBanned] = useState(false);
 
@@ -32,13 +32,15 @@ const UsersItem = ({ user, isOnline, isAdmin, onBan, onMute }) => {
     return (
       <ListItem>
         <ListItemIcon>
-          <Avatar>{user.name?.slice(0, 1).toUpperCase()}</Avatar>
+          <Avatar sx={{ bgcolor: onlineUser?.color }}>
+            {user.name?.slice(0, 1).toUpperCase()}
+          </Avatar>
         </ListItemIcon>
         <ListItemText>
           <Typography noWrap>{user.name}</Typography>
         </ListItemText>
 
-        <ListItemText secondary={isOnline && "online"} align="right" />
+        <ListItemText secondary={onlineUser && "online"} align="right" />
 
         <IconButton onClick={handleMute}>
           {isMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}
@@ -54,13 +56,15 @@ const UsersItem = ({ user, isOnline, isAdmin, onBan, onMute }) => {
   return (
     <ListItem>
       <ListItemIcon>
-        <Avatar>{user.name?.slice(0, 1).toUpperCase()}</Avatar>
+        <Avatar sx={{ bgcolor: onlineUser?.color }}>
+          {user.name?.slice(0, 1).toUpperCase()}
+        </Avatar>
       </ListItemIcon>
       <ListItemText>
         <Typography noWrap>{user.name}</Typography>
       </ListItemText>
 
-      <ListItemText secondary={isOnline && "online"} align="right" />
+      <ListItemText secondary={onlineUser && "online"} align="right" />
     </ListItem>
   );
 };

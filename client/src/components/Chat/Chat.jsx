@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import UsersList from "../UsersList/UsersList";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import SendIcon from "@mui/icons-material/Send";
+import chatBgImage from "../../images/chat-bg .jpg";
 
 const Chat = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -271,7 +272,15 @@ const Chat = () => {
           {drawer}
         </Drawer>
       </Box>
-      <Box component="main" sx={{ flexGrow: 1, p: 3, height: "100vh" }}>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          // p: 3,
+          height: "100vh",
+          backgroundImage: `url("${chatBgImage}")`,
+        }}
+      >
         <Toolbar />
 
         <Grid container>
@@ -281,48 +290,64 @@ const Chat = () => {
             xs={12}
             sx={{
               overflowY: "scroll",
-              height: "calc(100vh - 152px)",
+              height: {
+                sm: "calc(100vh - 120px)",
+                xs: "calc(100vh - 112px)",
+              },
             }}
           >
             <List>
               {messages.map((message, index) => {
+                const user = onlineUsers.find(
+                  (user) => user._id === message.userId
+                );
+
+                const isSender = message.sender === currentUser.name;
+
                 return (
-                  <ListItem key={index}>
-                    <Grid container>
-                      <Grid item xs={12}>
-                        <ListItemText
-                          style={{
-                            color:
-                              message.sender === currentUser.name &&
-                              currentUser.color,
-                          }}
-                          align={
-                            message.sender === currentUser.name
-                              ? "left"
-                              : "right"
-                          }
-                          primary={message.sender}
-                        ></ListItemText>
+                  <ListItem
+                    key={index}
+                    sx={{
+                      justifyContent: `${isSender ? "right" : "left"}`,
+                    }}
+                  >
+                    <Grid
+                      container
+                      sx={{
+                        p: 2,
+                        width: "fit-content",
+                        maxWidth: {
+                          xs: "200px",
+                          sm: "600px",
+                        },
+                        backgroundColor: isSender ? "#daf8e3" : "#dcf3ff",
+                        borderRadius: "20px",
+                        overflowWrap: "anywhere",
+                      }}
+                    >
+                      <Grid container item pb={1} xs={12} alignItems="center">
+                        <Grid item>
+                          <ListItemIcon>
+                            <Avatar sx={{ bgcolor: user?.color }}>
+                              {message.sender.slice(0, 1).toUpperCase()}
+                            </Avatar>
+                          </ListItemIcon>
+                        </Grid>
+
+                        <Grid item>
+                          <ListItemText
+                            sx={{
+                              color: isSender ? currentUser.color : user?.color,
+                            }}
+                            primary={message.sender}
+                          ></ListItemText>
+                        </Grid>
                       </Grid>
                       <Grid item xs={12}>
-                        <ListItemText
-                          align={
-                            message.sender === currentUser.name
-                              ? "left"
-                              : "right"
-                          }
-                          primary={message.body}
-                        ></ListItemText>
+                        <ListItemText primary={message.body}></ListItemText>
                       </Grid>
                       <Grid item xs={12}>
-                        <ListItemText
-                          align={
-                            message.sender === currentUser.name
-                              ? "left"
-                              : "right"
-                          }
-                          secondary={message.time}
-                        ></ListItemText>
+                        <ListItemText secondary={message.time}></ListItemText>
                       </Grid>
                     </Grid>
                   </ListItem>
@@ -337,7 +362,7 @@ const Chat = () => {
             sx={{
               position: "fixed",
               bottom: 0,
-              p: 3,
+              p: 2,
               left: {
                 sm: `${drawerWidth}px`,
                 xs: `0`,
@@ -355,7 +380,7 @@ const Chat = () => {
               spacing={2}
               wrap="nowrap"
             >
-              <Grid item xs={12}>
+              <Grid item xs={11}>
                 <TextField
                   inputRef={inputRef}
                   name="message"
@@ -369,10 +394,14 @@ const Chat = () => {
                   }
                   size="small"
                   disabled={currentUser.isMuted}
+                  sx={{
+                    backgroundColor: "#fff",
+                    borderRadius: "4px",
+                  }}
                 />
               </Grid>
 
-              <Grid item>
+              <Grid item xs>
                 <IconButton
                   type="submit"
                   color="primary"

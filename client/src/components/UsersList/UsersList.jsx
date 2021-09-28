@@ -1,44 +1,47 @@
-import { List } from "@material-ui/core";
 import UsersItem from "../UsersItem/UsersItem";
 
 const UsersList = ({ currentUser, allUsers, onlineUsers, onMute, onBan }) => {
-  const renderUsers = () => {
-    const isAdmin = currentUser.role === "admin";
+  const isAdmin = currentUser.role === "admin";
 
-    if (isAdmin) {
-      return allUsers.map((user) => {
-        const isOnline = onlineUsers.includes(user._id);
+  if (isAdmin) {
+    return allUsers.map((user) => {
+      const onlineUser = onlineUsers.find(
+        (onlineUser) => onlineUser._id === user._id
+      );
 
-        return (
-          <UsersItem
-            key={user._id}
-            user={user}
-            isOnline={isOnline}
-            onBan={onBan}
-            onMute={onMute}
-            isAdmin={isAdmin}
-          />
-        );
-      });
-    }
+      return (
+        <UsersItem
+          key={user._id}
+          user={user}
+          onlineUser={onlineUser}
+          onBan={onBan}
+          onMute={onMute}
+          isAdmin={isAdmin}
+        />
+      );
+    });
+  }
 
-    return allUsers
-      .filter((user) => onlineUsers.includes(user._id))
-      .map((user) => {
-        return (
-          <UsersItem
-            key={user._id}
-            user={user}
-            isOnline={true}
-            onBan={onBan}
-            onMute={onMute}
-            isAdmin={isAdmin}
-          />
-        );
-      });
-  };
+  return allUsers
+    .filter((user) =>
+      onlineUsers.find((onlineUser) => onlineUser._id === user._id)
+    )
+    .map((user) => {
+      const onlineUser = onlineUsers.find(
+        (onlineUser) => onlineUser._id === user._id
+      );
 
-  return <List>{renderUsers()}</List>;
+      return (
+        <UsersItem
+          key={user._id}
+          user={user}
+          onlineUser={onlineUser}
+          onBan={onBan}
+          onMute={onMute}
+          isAdmin={isAdmin}
+        />
+      );
+    });
 };
 
 export default UsersList;

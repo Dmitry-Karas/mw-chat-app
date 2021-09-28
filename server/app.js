@@ -27,7 +27,7 @@ io.use((socket, next) => {
       if (err) {
         return next(new Error("Auth error"));
       }
-      user.color = `#${Math.random().toString(16).substr(-6)}`;
+      user.color = `#${Math.random().toString(14).substr(-6)}`;
 
       socket.user = user;
 
@@ -57,7 +57,7 @@ io.use((socket, next) => {
 
     const newMessage = new Message(message);
 
-    // await newMessage.save();
+    await newMessage.save();
   });
 
   socket.on("messages", async () => {
