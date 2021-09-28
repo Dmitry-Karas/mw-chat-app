@@ -36,26 +36,12 @@ const Chat = () => {
   const sessionToken = sessionStorage.getItem("token");
   const drawerWidth = 360;
 
+  socket?.on("disconnect", () => handleLogout());
+
   useEffect(() => {
     messagesContainerRef.current.scrollTop =
       messagesContainerRef.current.scrollHeight;
-
-    if (!socket) {
-      return;
-    }
-
-    socket.on("connection", ({ userToken, user }) => {
-      if (sessionToken !== userToken || !currentUser) {
-        return;
-      }
-
-      setCurrentUser(user);
-    });
-
-    return () => {
-      socket.off("connection");
-    };
-  });
+  }, [messages]);
 
   useEffect(() => {
     const newSocket = io(`http://localhost:8080?token=${sessionToken}`);
@@ -75,32 +61,43 @@ const Chat = () => {
   }, [sessionToken]);
 
   useEffect(() => {
-    if (!socket) return;
+    socket?.on("connection", ({ userToken, user }) => {
+      if (sessionToken !== userToken || !currentUser) {
+        return;
+      }
 
-    socket.emit("connection");
-    socket.emit("messages");
-    socket.emit("onlineUsers");
-    socket.emit("allUsers");
+      setCurrentUser(user);
+    });
 
-    socket.on("allUsers", (users) => {
+    return () => {
+      socket?.off("connection");
+    };
+  }, [currentUser, sessionToken, socket]);
+
+  useEffect(() => {
+    socket?.emit("connection");
+    socket?.emit("onlineUsers");
+    socket?.emit("allUsers");
+
+    socket?.on("allUsers", (users) => {
       setAllUsers(users);
     });
 
-    socket.on("onlineUsers", (users) => {
+    socket?.on("onlineUsers", (users) => {
       setOnlineUsers(users);
     });
 
-    socket.on("ban", (user) => {
+    socket?.on("ban", (user) => {
       const shouldDisconnect = user.isBanned && currentUser._id === user._id;
 
       if (shouldDisconnect) {
         sessionStorage.removeItem("token");
-        socket.disconnect();
+        socket?.disconnect();
         history.push("/");
       }
     });
 
-    socket.on("mute", (user) => {
+    socket?.on("mute", (user) => {
       const shouldMute = currentUser._id === user._id;
 
       if (shouldMute) {
@@ -113,30 +110,24 @@ const Chat = () => {
     });
 
     return () => {
-      socket.off("allUsers");
-      socket.off("onlineUsers");
-      socket.off("ban");
-      socket.off("mute");
+      socket?.off("onlineUsers");
+      socket?.off("allUsers");
+      socket?.off("ban");
+      socket?.off("mute");
     };
   }, [currentUser, history, socket]);
 
   useEffect(() => {
-    if (!socket) {
-      return;
-    }
+    socket?.on("message", (message) => {
+      if (!message.body) return;
 
-    socket.on("message", (message) => {
-      if (!message.body) {
-        return;
-      }
-
-      setMessages([...messages, message]);
+      setMessages((state) => [...state, message]);
     });
 
     return () => {
-      socket.off("message");
+      socket?.off("message");
     };
-  }, [currentUser, messages, socket]);
+  }, [socket]);
 
   const handleLogout = () => {
     sessionStorage.removeItem("token");
@@ -158,7 +149,7 @@ const Chat = () => {
       time,
     };
 
-    socket.emit("message", message);
+    socket?.emit("message", message);
 
     messageForm.reset();
 
