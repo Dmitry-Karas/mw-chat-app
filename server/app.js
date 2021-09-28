@@ -57,7 +57,7 @@ io.use((socket, next) => {
 
     const newMessage = new Message(message);
 
-    await newMessage.save();
+    // await newMessage.save();
   });
 
   socket.on("messages", async () => {

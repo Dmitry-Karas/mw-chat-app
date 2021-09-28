@@ -17,12 +17,20 @@ const UsersItem = ({ user, onlineUser, isAdmin, onBan, onMute }) => {
   }, [user.isBanned, user.isMuted]);
 
   const handleMute = () => {
+    if (user.role === "admin") {
+      return alert("You cannot mute admin");
+    }
+
     onMute(user._id);
 
     setIsMuted(!isMuted);
   };
 
   const handleBan = () => {
+    if (user.role === "admin") {
+      return alert("You cannot ban admin");
+    }
+
     onBan(user._id);
 
     setIsBanned(!isBanned);
