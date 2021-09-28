@@ -27,18 +27,28 @@ io.use((socket, next) => {
       if (err) {
         return next(new Error("Auth error"));
       }
+      user.color = `#${Math.random().toString(16).substr(-6)}`;
 
       socket.user = user;
 
       next();
     });
   }
-});
-
-io.on("connection", (socket) => {
+}).on("connection", (socket) => {
   console.log(`user ${socket.user.name} connected. SocketID: ${socket.id}`);
 
+  const sockets = io.sockets.sockets;
   const userToken = socket.handshake.query.token;
+
+  sockets.forEach((liveSocket) => {
+    if (
+      liveSocket &&
+      liveSocket.id !== socket.id &&
+      liveSocket.user._id === socket.user._id
+    ) {
+      liveSocket.disconnect();
+    }
+  });
 
   io.emit("connection", { userToken, user: socket.user });
 
@@ -57,7 +67,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("onlineUsers", async () => {
-    onlineUsers.add(socket.user._id);
+    onlineUsers.add(socket.user);
 
     io.emit("onlineUsers", [...onlineUsers]);
   });
@@ -97,7 +107,7 @@ io.on("connection", (socket) => {
       `user ${socket.user.name} disconnected". SocketID: ${socket.id}`
     );
 
-    onlineUsers.delete(socket.user._id);
+    onlineUsers.delete(socket.user);
 
     io.emit("onlineUsers", [...onlineUsers]);
   });
