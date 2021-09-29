@@ -37,10 +37,10 @@ io.use((socket, next) => {
 }).on("connection", (socket) => {
   console.log(`user ${socket.user.name} connected. SocketID: ${socket.id}`);
 
-  const sockets = io.sockets.sockets;
+  const liveSockets = io.sockets.sockets;
   const userToken = socket.handshake.query.token;
 
-  sockets.forEach((liveSocket) => {
+  liveSockets.forEach((liveSocket) => {
     if (
       liveSocket &&
       liveSocket.id !== socket.id &&
@@ -117,7 +117,12 @@ const PORT = process.env.PORT || 3333;
 
 (async () => {
   try {
-    await mongoose.connect(process.env.DB_URL);
+    await mongoose.connect(process.env.DB_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+
+    console.log("Database connection successful");
 
     server.listen(PORT, () => console.log(`Listen on *: ${PORT}`));
   } catch (error) {

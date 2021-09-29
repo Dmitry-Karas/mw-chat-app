@@ -1,25 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import AppBar from "@mui/material/AppBar";
+import { io } from "socket.io-client";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
-import Divider from "@mui/material/Divider";
-import Drawer from "@mui/material/Drawer";
-import IconButton from "@mui/material/IconButton";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import MenuIcon from "@mui/icons-material/Menu";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
-import { Avatar, Grid, Stack, TextField } from "@mui/material";
-import { io } from "socket.io-client";
+import { Grid } from "@mui/material";
 import { useHistory } from "react-router";
 import { format } from "date-fns";
-import UsersList from "../UsersList/UsersList";
-import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import SendIcon from "@mui/icons-material/Send";
 import chatBgImage from "../../images/chat-bg .jpg";
+import Header from "../Header/Header";
+import Sidebar from "../Sidebar/Sidebar";
+import MessagesList from "../MessagesList/MessagesList";
+import SendForm from "../SendForm/SendForm";
 
 const Chat = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -28,6 +18,7 @@ const Chat = () => {
   const [currentUser, setCurrentUser] = useState({});
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
+  const [counter, setCounter] = useState(0);
 
   const history = useHistory();
 
@@ -35,9 +26,7 @@ const Chat = () => {
   const messagesContainerRef = useRef();
 
   const sessionToken = sessionStorage.getItem("token");
-  const drawerWidth = 360;
-
-  socket?.on("disconnect", () => handleLogout());
+  const drawerWidth = { xs: 320, sm: 360 };
 
   useEffect(() => {
     messagesContainerRef.current.scrollTop =
@@ -45,40 +34,34 @@ const Chat = () => {
   }, [messages]);
 
   useEffect(() => {
-    const newSocket = io(`http://localhost:8080?token=${sessionToken}`);
+    if (counter === 0) {
+      inputRef.current.placeholder = "Message";
 
-    setSocket(newSocket);
+      setCurrentUser((currentUser) => ({ ...currentUser, isMuted: false }));
 
-    newSocket.emit("messages");
+      return;
+    }
 
-    newSocket.on("messages", (messages) => {
-      setMessages(messages);
-    });
+    inputRef.current.placeholder = `Wait ${counter} seconds before sending the next message`;
 
-    return () => {
-      newSocket.disconnect();
-      newSocket.off("messages");
-    };
-  }, [sessionToken]);
-
-  useEffect(() => {
-    socket?.on("connection", ({ userToken, user }) => {
-      if (sessionToken !== userToken || !currentUser) {
-        return;
-      }
-
-      setCurrentUser(user);
-    });
+    const timerId = setTimeout(() => {
+      setCounter((counter) => (counter -= 1));
+    }, 1000);
 
     return () => {
-      socket?.off("connection");
+      clearTimeout(timerId);
     };
-  }, [currentUser, sessionToken, socket]);
+  }, [counter]);
 
   useEffect(() => {
+    socket?.emit("messages");
     socket?.emit("connection");
     socket?.emit("onlineUsers");
     socket?.emit("allUsers");
+
+    socket?.on("messages", (messages) => {
+      setMessages(messages);
+    });
 
     socket?.on("allUsers", (users) => {
       setAllUsers(users);
@@ -86,6 +69,31 @@ const Chat = () => {
 
     socket?.on("onlineUsers", (users) => {
       setOnlineUsers(users);
+    });
+
+    return () => {
+      socket?.disconnect();
+      socket?.off("messages");
+      socket?.off("onlineUsers");
+      socket?.off("allUsers");
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    const newSocket = io(`http://localhost:8080?token=${sessionToken}`);
+
+    setSocket(newSocket);
+  }, [sessionToken]);
+
+  useEffect(() => {
+    inputRef.current.focus();
+
+    socket?.on("connection", ({ userToken, user }) => {
+      if (sessionToken !== userToken || !currentUser) {
+        return;
+      }
+
+      setCurrentUser(user);
     });
 
     socket?.on("ban", (user) => {
@@ -110,13 +118,15 @@ const Chat = () => {
       }
     });
 
+    socket?.on("disconnect", handleLogout);
+
     return () => {
-      socket?.off("onlineUsers");
-      socket?.off("allUsers");
+      socket?.off("connection");
       socket?.off("ban");
       socket?.off("mute");
+      socket?.off("disconnect");
     };
-  }, [currentUser, history, socket]);
+  }, [currentUser, history, sessionToken, socket]);
 
   useEffect(() => {
     socket?.on("message", (message) => {
@@ -138,6 +148,7 @@ const Chat = () => {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
+
     const messageForm = e.currentTarget;
     const value = messageForm.elements.message.value;
 
@@ -154,135 +165,40 @@ const Chat = () => {
 
     messageForm.reset();
 
-    //============= Uncomment ===========
-
-    // inputRef.current.disabled = true;
-    // inputRef.current.placeholder = "You can send messages every 15 seconds";
-
-    // setTimeout(() => {
-    //   inputRef.current.disabled = false;
-    //   inputRef.current.placeholder = "Message";
-    //   inputRef.current.focus();
-    // }, 15000);
-
-    // ===================================
-  };
-
-  const handleMute = (userId) => {
-    socket.emit("mute", userId);
-  };
-
-  const handleBan = (userId) => {
-    socket.emit("ban", userId);
+    setCounter(15);
+    setCurrentUser({ ...currentUser, isMuted: true });
   };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const drawer = (
-    <Box>
-      <List>
-        <ListItem>
-          <ListItemIcon>
-            <Avatar sx={{ bgcolor: currentUser.color }}>
-              {currentUser.name?.slice(0, 1).toUpperCase()}
-            </Avatar>
-          </ListItemIcon>
-          <ListItemText primary={currentUser.name} />
-        </ListItem>
-      </List>
-      <Divider />
-      <List>
-        <UsersList
-          currentUser={currentUser}
-          allUsers={allUsers}
-          onlineUsers={onlineUsers}
-          onMute={handleMute}
-          onBan={handleBan}
-        />
-      </List>
-    </Box>
-  );
-
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-      <AppBar
-        position="fixed"
-        sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
-        }}
-      >
-        <Toolbar>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            width="100%"
-          >
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { sm: "none" } }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" noWrap component="div">
-              Chat app
-            </Typography>
-            <IconButton color="inherit" size="large" onClick={handleLogout}>
-              <ExitToAppIcon fontSize="large" />
-            </IconButton>
-          </Stack>
-        </Toolbar>
-      </AppBar>
-      <Box sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
-          }}
-          sx={{
-            display: { xs: "block", sm: "none" },
-            "& .MuiDrawer-paper": {
-              boxSizing: "border-box",
-              width: drawerWidth,
-            },
-          }}
-        >
-          {drawer}
-        </Drawer>
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: "none", sm: "block" },
-            "& .MuiDrawer-paper": {
-              boxSizing: "border-box",
-              width: drawerWidth,
-            },
-          }}
-          open
-        >
-          {drawer}
-        </Drawer>
-      </Box>
+      <Header
+        drawerWidth={drawerWidth}
+        onDrawerToggle={handleDrawerToggle}
+        handleLogout={handleLogout}
+      />
+      <Sidebar
+        drawerWidth={drawerWidth}
+        mobileOpen={mobileOpen}
+        onDrawerToggle={handleDrawerToggle}
+        currentUser={currentUser}
+        allUsers={allUsers}
+        onlineUsers={onlineUsers}
+        socket={socket}
+      />
+
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          // p: 3,
           height: "100vh",
           backgroundImage: `url("${chatBgImage}")`,
         }}
       >
-        <Toolbar />
-
         <Grid container>
           <Grid
             ref={messagesContainerRef}
@@ -290,128 +206,24 @@ const Chat = () => {
             xs={12}
             sx={{
               overflowY: "scroll",
-              height: {
-                sm: "calc(100vh - 120px)",
-                xs: "calc(100vh - 112px)",
-              },
+              height: "calc(100vh - 56px)",
             }}
           >
-            <List>
-              {messages.map((message, index) => {
-                const user = onlineUsers.find(
-                  (user) => user._id === message.userId
-                );
-
-                const isSender = message.sender === currentUser.name;
-
-                return (
-                  <ListItem
-                    key={index}
-                    sx={{
-                      justifyContent: `${isSender ? "right" : "left"}`,
-                    }}
-                  >
-                    <Grid
-                      container
-                      sx={{
-                        p: 2,
-                        width: "fit-content",
-                        maxWidth: {
-                          xs: "200px",
-                          sm: "600px",
-                        },
-                        backgroundColor: isSender ? "#daf8e3" : "#dcf3ff",
-                        borderRadius: "20px",
-                        overflowWrap: "anywhere",
-                      }}
-                    >
-                      <Grid container item pb={1} xs={12} alignItems="center">
-                        <Grid item>
-                          <ListItemIcon>
-                            <Avatar sx={{ bgcolor: user?.color }}>
-                              {message.sender.slice(0, 1).toUpperCase()}
-                            </Avatar>
-                          </ListItemIcon>
-                        </Grid>
-
-                        <Grid item>
-                          <ListItemText
-                            sx={{
-                              color: isSender ? currentUser.color : user?.color,
-                            }}
-                            primary={message.sender}
-                          ></ListItemText>
-                        </Grid>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <ListItemText primary={message.body}></ListItemText>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <ListItemText secondary={message.time}></ListItemText>
-                      </Grid>
-                    </Grid>
-                  </ListItem>
-                );
-              })}
-            </List>
+            <MessagesList
+              messages={messages}
+              onlineUsers={onlineUsers}
+              currentUser={currentUser}
+            />
           </Grid>
 
-          <Box
-            component="form"
-            onSubmit={handleSendMessage}
-            sx={{
-              position: "fixed",
-              bottom: 0,
-              p: 2,
-              left: {
-                sm: `${drawerWidth}px`,
-                xs: `0`,
-              },
-              width: {
-                xs: `100%`,
-                sm: `calc(100% - ${drawerWidth}px)`,
-              },
-            }}
-          >
-            <Grid
-              container
-              alignItems="center"
-              justifyContent="space-between"
-              spacing={2}
-              wrap="nowrap"
-            >
-              <Grid item xs={11}>
-                <TextField
-                  inputRef={inputRef}
-                  name="message"
-                  autoFocus
-                  variant="outlined"
-                  inputProps={{ maxLength: 200 }}
-                  fullWidth
-                  autoComplete="off"
-                  placeholder={
-                    currentUser.isMuted ? "You are muted" : "Message"
-                  }
-                  size="small"
-                  disabled={currentUser.isMuted}
-                  sx={{
-                    backgroundColor: "#fff",
-                    borderRadius: "4px",
-                  }}
-                />
-              </Grid>
-
-              <Grid item xs>
-                <IconButton
-                  type="submit"
-                  color="primary"
-                  disabled={currentUser.isMuted}
-                >
-                  <SendIcon />
-                </IconButton>
-              </Grid>
-            </Grid>
-          </Box>
+          <Grid item>
+            <SendForm
+              onSendMessage={handleSendMessage}
+              drawerWidth={drawerWidth}
+              inputRef={inputRef}
+              currentUser={currentUser}
+            />
+          </Grid>
         </Grid>
       </Box>
     </Box>

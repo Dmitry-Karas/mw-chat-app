@@ -45,7 +45,14 @@ const UsersItem = ({ user, onlineUser, isAdmin, onBan, onMute }) => {
           </Avatar>
         </ListItemIcon>
         <ListItemText>
-          <Typography noWrap>{user.name}</Typography>
+          <Typography
+            sx={{
+              overflowWrap: "anywhere",
+              width: { xs: "100px", sm: "140px" },
+            }}
+          >
+            {user.name}
+          </Typography>
         </ListItemText>
 
         <ListItemText secondary={onlineUser && "online"} align="right" />
