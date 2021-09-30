@@ -53,6 +53,10 @@ io.use((socket, next) => {
   io.emit("connection", { userToken, user: socket.user });
 
   socket.on("message", async (message) => {
+    const sender = await User.findById(message.userId);
+
+    if (sender.isMuted) return;
+
     const newMessage = new Message(message);
     const savedMessage = await newMessage.save();
 
