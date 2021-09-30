@@ -7,7 +7,7 @@ import DoNotDisturbOffIcon from "@mui/icons-material/DoNotDisturbOff";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 
-const UsersItem = ({ user, onlineUser, isAdmin, onBan, onMute }) => {
+const UsersItem = ({ user, onlineUser, isAdmin, socket }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isBanned, setIsBanned] = useState(false);
 
@@ -16,57 +16,45 @@ const UsersItem = ({ user, onlineUser, isAdmin, onBan, onMute }) => {
     setIsBanned(user.isBanned);
   }, [user.isBanned, user.isMuted]);
 
-  const handleMute = () => {
+  const handleAction = (action) => {
     if (user.role === "admin") {
-      return alert("You cannot mute admin");
+      return alert(`You cannot ${action} admin`);
     }
 
-    onMute(user._id);
+    socket.emit(action, user._id);
 
-    setIsMuted(!isMuted);
-  };
+    switch (action) {
+      case "ban":
+        setIsBanned(!isBanned);
+        return;
 
-  const handleBan = () => {
-    if (user.role === "admin") {
-      return alert("You cannot ban admin");
+      case "mute":
+        setIsMuted(!isMuted);
+        return;
+
+      default:
+        return console.log("Unknown action");
     }
-
-    onBan(user._id);
-
-    setIsBanned(!isBanned);
   };
 
-  if (isAdmin) {
-    return (
-      <ListItem>
-        <ListItemIcon>
-          <Avatar sx={{ bgcolor: onlineUser?.color }}>
-            {user.name?.slice(0, 1).toUpperCase()}
-          </Avatar>
-        </ListItemIcon>
-        <ListItemText>
-          <Typography
-            sx={{
-              overflowWrap: "anywhere",
-              width: { xs: "100px", sm: "140px" },
-            }}
-          >
-            {user.name}
-          </Typography>
-        </ListItemText>
+  // const handleMute = () => {
+  //   if (user.role === "admin") {
+  //     return alert("You cannot mute admin");
+  //   }
 
-        <ListItemText secondary={onlineUser && "online"} align="right" />
+  //   socket.emit("mute", user._id);
 
-        <IconButton onClick={handleMute}>
-          {isMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}
-        </IconButton>
+  //   setIsMuted(!isMuted);
+  // };
 
-        <IconButton onClick={handleBan}>
-          {isBanned ? <DoNotDisturbOffIcon /> : <DoNotDisturbOnIcon />}
-        </IconButton>
-      </ListItem>
-    );
-  }
+  // const handleBan = () => {
+  //   if (user.role === "admin") {
+  //     return alert("You cannot ban admin");
+  //   }
+  //   socket.emit("ban", user._id);
+
+  //   setIsBanned(!isBanned);
+  // };
 
   return (
     <ListItem>
@@ -76,10 +64,35 @@ const UsersItem = ({ user, onlineUser, isAdmin, onBan, onMute }) => {
         </Avatar>
       </ListItemIcon>
       <ListItemText>
-        <Typography noWrap>{user.name}</Typography>
+        <Typography
+          sx={{
+            overflowWrap: "anywhere",
+            width: { xs: "100px", sm: "140px" },
+          }}
+        >
+          {user.name}
+        </Typography>
       </ListItemText>
 
       <ListItemText secondary={onlineUser && "online"} align="right" />
+
+      {isAdmin && (
+        <>
+          <IconButton
+            onClick={() => handleAction("mute")}
+            disabled={user.role === "admin"}
+          >
+            {isMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}
+          </IconButton>
+
+          <IconButton
+            onClick={() => handleAction("ban")}
+            disabled={user.role === "admin"}
+          >
+            {isBanned ? <DoNotDisturbOffIcon /> : <DoNotDisturbOnIcon />}
+          </IconButton>
+        </>
+      )}
     </ListItem>
   );
 };
