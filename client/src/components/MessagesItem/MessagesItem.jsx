@@ -11,7 +11,6 @@ const MessagesItem = ({ message, user, currentUser }) => {
 
   return (
     <ListItem
-      key={message._id}
       sx={{
         justifyContent: `${isSender ? "right" : "left"}`,
       }}

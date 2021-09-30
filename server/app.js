@@ -53,17 +53,15 @@ io.use((socket, next) => {
   io.emit("connection", { userToken, user: socket.user });
 
   socket.on("message", async (message) => {
-    io.emit("message", message);
-
     const newMessage = new Message(message);
+    const savedMessage = await newMessage.save();
 
-    // await newMessage.save();
+    io.emit("message", savedMessage);
   });
 
   socket.on("messages", async () => {
     const messages = await Message.find();
-
-    io.emit("messages", messages);
+    socket.emit("messages", messages);
   });
 
   socket.on("onlineUsers", async () => {
