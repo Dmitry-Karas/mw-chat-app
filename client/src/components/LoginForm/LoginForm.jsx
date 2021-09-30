@@ -37,18 +37,12 @@ const LoginForm = () => {
     try {
       const data = await ChatAPI.auth({ name, password });
 
-      if (data) {
-        const { token } = data;
+      if (!data) return;
 
-        // if (isBanned) {
-        //   alert("You are banned");
-        //   return;
-        // }
+      const { token } = data;
 
-        sessionStorage.setItem("token", token);
-
-        history.push("/chat");
-      }
+      sessionStorage.setItem("token", token);
+      history.push("/chat");
     } catch (error) {
       console.log(error.message);
     }

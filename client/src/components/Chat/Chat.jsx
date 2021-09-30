@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { io } from "socket.io-client";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
-import { Grid } from "@mui/material";
+import { Grid, Toolbar } from "@mui/material";
 import { useHistory } from "react-router";
 import { format } from "date-fns";
 import chatBgImage from "../../images/chat-bg .jpg";
@@ -10,6 +10,8 @@ import Header from "../Header/Header";
 import Sidebar from "../Sidebar/Sidebar";
 import MessagesList from "../MessagesList/MessagesList";
 import SendForm from "../SendForm/SendForm";
+
+const drawerWidth = { xs: 320, sm: 360 };
 
 const Chat = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -19,14 +21,10 @@ const Chat = () => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [counter, setCounter] = useState(0);
-
   const history = useHistory();
-
   const inputRef = useRef();
   const messagesContainerRef = useRef();
-
   const sessionToken = sessionStorage.getItem("token");
-  const drawerWidth = { xs: 320, sm: 360 };
 
   useEffect(() => {
     messagesContainerRef.current.scrollTop =
@@ -59,6 +57,12 @@ const Chat = () => {
     socket?.emit("onlineUsers");
     socket?.emit("allUsers");
 
+    socket?.on("message", (message) => {
+      if (!message.body) return;
+
+      setMessages((state) => [...state, message]);
+    });
+
     socket?.on("messages", (messages) => {
       setMessages(messages);
     });
@@ -73,6 +77,7 @@ const Chat = () => {
 
     return () => {
       socket?.disconnect();
+      socket?.off("message");
       socket?.off("messages");
       socket?.off("onlineUsers");
       socket?.off("allUsers");
@@ -81,7 +86,6 @@ const Chat = () => {
 
   useEffect(() => {
     const newSocket = io(`http://localhost:8080?token=${sessionToken}`);
-
     setSocket(newSocket);
   }, [sessionToken]);
 
@@ -113,8 +117,6 @@ const Chat = () => {
         const newUser = { ...currentUser, isMuted: user.isMuted };
 
         setCurrentUser(newUser);
-
-        sessionStorage.setItem("user", JSON.stringify(newUser));
       }
     });
 
@@ -126,19 +128,9 @@ const Chat = () => {
       socket?.off("mute");
       socket?.off("disconnect");
     };
+
+    //  eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, history, sessionToken, socket]);
-
-  useEffect(() => {
-    socket?.on("message", (message) => {
-      if (!message.body) return;
-
-      setMessages((state) => [...state, message]);
-    });
-
-    return () => {
-      socket?.off("message");
-    };
-  }, [socket]);
 
   const handleLogout = () => {
     sessionStorage.removeItem("token");
@@ -199,6 +191,8 @@ const Chat = () => {
           backgroundImage: `url("${chatBgImage}")`,
         }}
       >
+        <Toolbar />
+
         <Grid container>
           <Grid
             ref={messagesContainerRef}
@@ -206,7 +200,10 @@ const Chat = () => {
             xs={12}
             sx={{
               overflowY: "scroll",
-              height: "calc(100vh - 56px)",
+              height: {
+                xs: "calc(100vh - 112px)",
+                sm: "calc(100vh - 120px)",
+              },
             }}
           >
             <MessagesList

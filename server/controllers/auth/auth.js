@@ -1,4 +1,4 @@
-const { User } = require("../models");
+const { User } = require("../../models");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -47,7 +47,6 @@ const auth = async (req, res) => {
     }
 
     const { _id, role, isBanned, isMuted } = user;
-
     const token = generateSuccessToken(user);
 
     if (isBanned) {
@@ -71,4 +70,4 @@ const auth = async (req, res) => {
   }
 };
 
-module.exports = { auth };
+module.exports = auth;
