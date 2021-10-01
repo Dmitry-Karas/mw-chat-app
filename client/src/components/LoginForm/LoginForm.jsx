@@ -10,7 +10,7 @@ import { useState } from "react";
 import { ChatAPI } from "../../services/chatAPI";
 import { useHistory } from "react-router-dom";
 
-const LoginForm = () => {
+const LoginForm = ({ onUserChange }) => {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
 
@@ -37,7 +37,11 @@ const LoginForm = () => {
     try {
       const data = await ChatAPI.auth({ name, password });
 
-      if (!data) return;
+      if (!data) {
+        return;
+      }
+
+      onUserChange(data);
 
       const { token } = data;
 

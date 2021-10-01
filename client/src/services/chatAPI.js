@@ -12,4 +12,15 @@ export class ChatAPI {
       console.log(error.message);
     }
   }
+
+  static async getCurrentUser(token) {
+    console.log("request");
+    try {
+      const { data } = await axios.post("/auth/current", token);
+
+      return data;
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
 }

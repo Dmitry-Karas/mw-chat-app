@@ -1,7 +1,7 @@
 import Chat from "../../components/Chat/Chat";
 
-const ChatPage = () => {
-  return <Chat />;
+const ChatPage = ({ currentUser, onUserChange }) => {
+  return <Chat currentUser={currentUser} onUserChange={onUserChange} />;
 };
 
 export default ChatPage;

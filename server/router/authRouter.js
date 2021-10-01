@@ -7,5 +7,6 @@ const { joiUserSchema } = require("../models/User");
 const router = express.Router();
 
 router.post("/auth", validation(joiUserSchema), authController.auth);
+router.post("/auth/current", authController.getCurrentUser);
 
 module.exports = router;

@@ -10,14 +10,15 @@ import Header from "../Header/Header";
 import Sidebar from "../Sidebar/Sidebar";
 import MessagesList from "../MessagesList/MessagesList";
 import SendForm from "../SendForm/SendForm";
+import { ChatAPI } from "../../services/chatAPI";
 
 const drawerWidth = { xs: 320, sm: 360 };
 
-const Chat = () => {
+const Chat = ({ currentUser, onUserChange }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [socket, setSocket] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [currentUser, setCurrentUser] = useState({});
+  // const [currentUser, setCurrentUser] = useState({});
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [counter, setCounter] = useState(0);
@@ -35,7 +36,9 @@ const Chat = () => {
     if (counter === 0) {
       inputRef.current.placeholder = "Message";
 
-      setCurrentUser((currentUser) => ({ ...currentUser, isMuted: false }));
+      // setCurrentUser((currentUser) => ({ ...currentUser, isMuted: false }));
+
+      onUserChange((currentUser) => ({ ...currentUser, isMuted: false }));
 
       return;
     }
@@ -49,13 +52,13 @@ const Chat = () => {
     return () => {
       clearTimeout(timerId);
     };
-  }, [counter]);
+  }, [counter, onUserChange]);
 
   useEffect(() => {
-    socket?.emit("messages");
-    socket?.emit("connection");
-    socket?.emit("onlineUsers");
-    socket?.emit("allUsers");
+    // socket?.emit("messages");
+    // socket?.emit("connection");
+    // socket?.emit("onlineUsers");
+    // socket?.emit("allUsers");
 
     socket?.on("message", (message) => {
       if (!message.body) return;
@@ -86,19 +89,25 @@ const Chat = () => {
 
   useEffect(() => {
     const newSocket = io(`http://localhost:8080?token=${sessionToken}`);
+
     setSocket(newSocket);
-  }, [sessionToken]);
+
+    if (sessionToken !== currentUser.token) {
+      ChatAPI.getCurrentUser({ token: sessionToken }).then(onUserChange);
+    }
+  }, [currentUser.token, onUserChange, sessionToken]);
 
   useEffect(() => {
     inputRef.current.focus();
 
-    socket?.on("connection", ({ userToken, user }) => {
-      if (sessionToken !== userToken || !currentUser) {
-        return;
-      }
+    // socket?.on("connection", ({ userToken, user }) => {
+    //   if (sessionToken !== userToken || !currentUser) {
+    //     return;
+    //   }
 
-      setCurrentUser(user);
-    });
+    //   onUserChange(user);
+    //   // setCurrentUser(user);
+    // });
 
     socket?.on("ban", (user) => {
       const shouldDisconnect = user.isBanned && currentUser._id === user._id;
@@ -116,7 +125,8 @@ const Chat = () => {
       if (shouldMute) {
         const newUser = { ...currentUser, isMuted: user.isMuted };
 
-        setCurrentUser(newUser);
+        // setCurrentUser(newUser);
+        onUserChange(newUser);
       }
     });
 
@@ -158,7 +168,8 @@ const Chat = () => {
     messageForm.reset();
 
     setCounter(15);
-    setCurrentUser({ ...currentUser, isMuted: true });
+    // setCurrentUser({ ...currentUser, isMuted: true });
+    onUserChange({ ...currentUser, isMuted: true });
   };
 
   const handleDrawerToggle = () => {

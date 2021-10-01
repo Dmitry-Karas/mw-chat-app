@@ -18,58 +18,89 @@ app.use(cors());
 app.use(express.json());
 app.use("/", authRouter);
 
-// todo: need this?
-const onlineUsers = new Set();
+// todo: need this? | NO :)
+
+// const onlineUsers = new Set();
+const liveSockets = io.sockets.sockets;
 
 io.use((socket, next) => {
+  // const liveSockets = io.sockets.sockets;
   const token = socket.handshake.query.token;
 
   if (token) {
-    jwt.verify(token, process.env.JWT_SECRET_KEY, async (err, user) => {
-      if (err) {
-        return next(new Error("Auth error"));
+    jwt.verify(
+      token,
+      process.env.JWT_SECRET_KEY,
+      async (err, connectedUser) => {
+        if (err) {
+          return next(new Error("Auth error"));
+        }
+
+        const user = await User.findById(connectedUser._id);
+        // todo: check user in db, check ban status
+
+        if (!user) {
+          return next(new Error(`User ${connectedUser.name} not found`));
+        }
+
+        if (user.isBanned) {
+          return next(new Error(`User ${connectedUser.name} is banned`));
+        }
+
+        const userObj = user.toObject();
+
+        userObj.color = `#${Math.random().toString(14).substr(-6)}`;
+        socket.user = userObj; // <-- user from db
+        socket.token = token;
+
+        const { createdAt } = await Message.findOne({
+          userId: message.userId,
+        }).sort({ _id: -1 });
+
+        socket.lastMessage = createdAt;
+
+        liveSockets.forEach((liveSocket) => {
+          if (
+            liveSocket &&
+            //liveSocket.id !== socket.id &&
+            liveSocket.user._id.toString() === socket.user._id.toString()
+          ) {
+            liveSocket.disconnect();
+          }
+        });
+        next();
       }
-      const userFromDb = await User.findById(user._id);
-
-      // todo: check user in db, check ban status
-
-      if (user.isBanned) {
-        return;
-      }
-
-      user.color = `#${Math.random().toString(14).substr(-6)}`;
-      socket.user = userFromDb; // <-- user from db
-      socket.token = token;
-
-      next();
-    });
+    );
   }
-}).on("connection", (socket) => {
+}).on("connection", async (socket) => {
   console.log(`user ${socket.user.name} connected. SocketID: ${socket.id}`);
-
-  const liveSockets = io.sockets.sockets;
-  // todo: move to middleware
-
-  liveSockets.forEach((liveSocket) => {
-    if (
-      liveSocket &&
-      liveSocket.id !== socket.id &&
-      liveSocket.user._id === socket.user._id
-    ) {
-      liveSocket.disconnect();
-    }
-  });
 
   // todo: remove
 
-  io.emit("connection", { userToken: socket.token, user: socket.user });
+  socket.emit("connection", {
+    user: {
+      name: socket.user.name,
+      id: socket.user.id,
+    },
+  });
+
+  socket.emit(
+    "messages",
+    (await Message.find().limit(20).sort({ _id: -1 })).reverse()
+  );
+
+  socket.emit(
+    "onlineUsers",
+    [...liveSockets].map((s) => s[1].user)
+  );
+
+  if (socket.user.role === "admin") {
+    socket.emit("allUsers", await User.find());
+  }
 
   // todo: do not send user raw data from db to front
-
   socket.on("message", async (message) => {
     // todo: get user data from socket.user
-
-    // const sender = await User.findById(message.userId);
 
     if (socket.user.isMuted) {
       return;
@@ -77,8 +108,24 @@ io.use((socket, next) => {
 
     // todo: check length, 15 sec timeout
 
+    // const { createdAt } = await Message.findOne({
+    //   userId: message.userId,
+    // }).sort({ _id: -1 });
+
+    const createdAt = socket.lastMessage;
+    const currentTime = Date.now();
+
+    const lastMessageTime = createdAt.getTime();
+    const diff = Math.round((currentTime - lastMessageTime) / 1000);
+
+    if (diff < 15) {
+      return;
+    }
+
     const newMessage = new Message(message);
     const savedMessage = await newMessage.save();
+
+    socket.lastMessage = currentTime;
 
     io.emit("message", savedMessage);
   });
@@ -86,25 +133,36 @@ io.use((socket, next) => {
   // todo: send on client connect
   socket.on("messages", async () => {
     // todo: get last 20 messages from db (limit)
-    const messages = await Message.find();
+
+    const messages = await (
+      await Message.find().limit(20).sort({ _id: -1 })
+    ).reverse();
 
     socket.emit("messages", messages);
   });
 
   // todo: send on client connect
   socket.on("onlineUsers", async () => {
-    onlineUsers.add(socket.user);
-
-    io.emit("onlineUsers", [...onlineUsers]);
+    io.emit(
+      "onlineUsers",
+      [...liveSockets].map((s) => s[1].user)
+    );
   });
 
   // todo: send on client connect if user admin
   socket.on("allUsers", async () => {
+    if (socket.user.role !== "admin") {
+      return;
+    }
+
     const allUsers = await User.find();
 
     socket.emit("allUsers", allUsers);
   });
 
+  if (socket.user.role !== "admin") {
+    return;
+  }
   // todo: check for admin
   socket.on("mute", async (userId) => {
     const { isMuted } = await User.findById(userId);
@@ -134,9 +192,10 @@ io.use((socket, next) => {
       `user ${socket.user.name} disconnected". SocketID: ${socket.id}`
     );
 
-    onlineUsers.delete(socket.user);
-
-    io.emit("onlineUsers", [...onlineUsers]);
+    io.emit(
+      "onlineUsers",
+      [...liveSockets].map((s) => s[1].user)
+    );
   });
 });
 

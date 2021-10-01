@@ -23,17 +23,13 @@ const UsersList = ({ currentUser, allUsers, onlineUsers, socket }) => {
     });
   }
 
-  return allUsers
-    .filter((user) =>
-      onlineUsers.find((onlineUser) => onlineUser._id === user._id)
-    )
-    .map((user) => {
-      const onlineUser = onlineUsers.find(
-        (onlineUser) => onlineUser._id === user._id
-      );
+  return onlineUsers.map((user) => {
+    const onlineUser = onlineUsers.find(
+      (onlineUser) => onlineUser._id === user._id
+    );
 
-      return usersItemMarkup(user, onlineUser);
-    });
+    return usersItemMarkup(user, onlineUser);
+  });
 };
 
 export default UsersList;
