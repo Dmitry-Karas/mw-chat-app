@@ -12,6 +12,6 @@
   "scripts": {
     "server": "yarn --cwd server dev",
     "client": "yarn --cwd client start",
-    "start": "concurrently \"yarn server\" \"yarn client\""
+    "install:project": "yarn --cwd server install; yarn --cwd client install"
   }
 }
