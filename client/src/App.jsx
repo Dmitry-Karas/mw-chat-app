@@ -6,17 +6,15 @@ import ChatPage from "./pages/ChatPage/ChatPage";
 import LoginPage from "./pages/LoginPage/LoginPage";
 
 const App = () => {
-  const [currentUser, setCurrentUser] = useState({});
-
   return (
     <>
       <Switch>
         <PublicRoute path="/" exact restricted redirectTo="/chat">
-          <LoginPage onUserChange={setCurrentUser} />
+          <LoginPage />
         </PublicRoute>
 
         <PrivateRoute path="/chat" redirectTo="/">
-          <ChatPage currentUser={currentUser} onUserChange={setCurrentUser} />
+          <ChatPage />
         </PrivateRoute>
 
         <Redirect to="/" />

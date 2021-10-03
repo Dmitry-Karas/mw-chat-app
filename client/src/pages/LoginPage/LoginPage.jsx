@@ -1,7 +1,7 @@
 import LoginForm from "../../components/LoginForm/LoginForm";
 
-const LoginPage = ({ onUserChange }) => {
-  return <LoginForm onUserChange={onUserChange} />;
+const LoginPage = () => {
+  return <LoginForm />;
 };
 
 export default LoginPage;

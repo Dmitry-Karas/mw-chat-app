@@ -10,22 +10,28 @@ import Header from "../Header/Header";
 import Sidebar from "../Sidebar/Sidebar";
 import MessagesList from "../MessagesList/MessagesList";
 import SendForm from "../SendForm/SendForm";
-import { ChatAPI } from "../../services/chatAPI";
 
 const drawerWidth = { xs: 320, sm: 360 };
 
-const Chat = ({ currentUser, onUserChange }) => {
+const Chat = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [socket, setSocket] = useState(null);
   const [messages, setMessages] = useState([]);
-  // const [currentUser, setCurrentUser] = useState({});
+  const [currentUser, setCurrentUser] = useState({});
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [counter, setCounter] = useState(0);
   const history = useHistory();
   const inputRef = useRef();
   const messagesContainerRef = useRef();
-  const sessionToken = sessionStorage.getItem("token");
+
+  useEffect(() => {
+    const socket = io(
+      `http://localhost:8080?token=${sessionStorage.getItem("token")}`
+    );
+
+    setSocket(socket);
+  }, []);
 
   useEffect(() => {
     messagesContainerRef.current.scrollTop =
@@ -36,9 +42,7 @@ const Chat = ({ currentUser, onUserChange }) => {
     if (counter === 0) {
       inputRef.current.placeholder = "Message";
 
-      // setCurrentUser((currentUser) => ({ ...currentUser, isMuted: false }));
-
-      onUserChange((currentUser) => ({ ...currentUser, isMuted: false }));
+      setCurrentUser((currentUser) => ({ ...currentUser, isMuted: false }));
 
       return;
     }
@@ -52,13 +56,12 @@ const Chat = ({ currentUser, onUserChange }) => {
     return () => {
       clearTimeout(timerId);
     };
-  }, [counter, onUserChange]);
+  }, [counter]);
 
   useEffect(() => {
-    // socket?.emit("messages");
-    // socket?.emit("connection");
-    // socket?.emit("onlineUsers");
-    // socket?.emit("allUsers");
+    socket?.on("connection", ({ user }) => {
+      setCurrentUser(user);
+    });
 
     socket?.on("message", (message) => {
       if (!message.body) return;
@@ -80,6 +83,7 @@ const Chat = ({ currentUser, onUserChange }) => {
 
     return () => {
       socket?.disconnect();
+      socket?.off("connection");
       socket?.off("message");
       socket?.off("messages");
       socket?.off("onlineUsers");
@@ -88,26 +92,7 @@ const Chat = ({ currentUser, onUserChange }) => {
   }, [socket]);
 
   useEffect(() => {
-    const newSocket = io(`http://localhost:8080?token=${sessionToken}`);
-
-    setSocket(newSocket);
-
-    if (sessionToken !== currentUser.token) {
-      ChatAPI.getCurrentUser({ token: sessionToken }).then(onUserChange);
-    }
-  }, [currentUser.token, onUserChange, sessionToken]);
-
-  useEffect(() => {
     inputRef.current.focus();
-
-    // socket?.on("connection", ({ userToken, user }) => {
-    //   if (sessionToken !== userToken || !currentUser) {
-    //     return;
-    //   }
-
-    //   onUserChange(user);
-    //   // setCurrentUser(user);
-    // });
 
     socket?.on("ban", (user) => {
       const shouldDisconnect = user.isBanned && currentUser._id === user._id;
@@ -120,27 +105,25 @@ const Chat = ({ currentUser, onUserChange }) => {
     });
 
     socket?.on("mute", (user) => {
+      // console.log(user);
+      // setCurrentUser(user);
       const shouldMute = currentUser._id === user._id;
-
       if (shouldMute) {
         const newUser = { ...currentUser, isMuted: user.isMuted };
 
-        // setCurrentUser(newUser);
-        onUserChange(newUser);
+        setCurrentUser(newUser);
       }
     });
 
     socket?.on("disconnect", handleLogout);
 
     return () => {
-      socket?.off("connection");
       socket?.off("ban");
       socket?.off("mute");
       socket?.off("disconnect");
     };
-
-    //  eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser, history, sessionToken, socket]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser, history, socket]);
 
   const handleLogout = () => {
     sessionStorage.removeItem("token");
@@ -168,8 +151,7 @@ const Chat = ({ currentUser, onUserChange }) => {
     messageForm.reset();
 
     setCounter(15);
-    // setCurrentUser({ ...currentUser, isMuted: true });
-    onUserChange({ ...currentUser, isMuted: true });
+    setCurrentUser({ ...currentUser, isMuted: true });
   };
 
   const handleDrawerToggle = () => {
