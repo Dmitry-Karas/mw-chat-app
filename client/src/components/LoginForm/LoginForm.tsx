@@ -16,7 +16,7 @@ const LoginForm = () => {
 
   const history = useHistory();
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     switch (e.target.name) {
       case "email":
         setName(e.target.value);
@@ -31,7 +31,7 @@ const LoginForm = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
@@ -45,7 +45,7 @@ const LoginForm = () => {
 
       sessionStorage.setItem("token", token);
       history.push("/chat");
-    } catch (error) {
+    } catch (error: any) {
       console.log(error.message);
     }
   };

@@ -2,7 +2,13 @@ import { AppBar, IconButton, Stack, Toolbar, Typography } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 
-const Header = ({ drawerWidth, onDrawerToggle, handleLogout }) => {
+interface Props {
+  drawerWidth: { xs: number; sm: number };
+  onDrawerToggle(): void;
+  handleLogout(): void;
+}
+
+const Header = ({ drawerWidth, onDrawerToggle, handleLogout }: Props) => {
   return (
     <AppBar
       position="fixed"

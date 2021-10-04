@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Switch, Redirect } from "react-router-dom";
 import PrivateRoute from "./components/PrivateRoute";
 import PublicRoute from "./components/PublicRoute";
