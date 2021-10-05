@@ -5,8 +5,15 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
+import { IMessage, IUser } from "../../interfaces";
 
-const MessagesItem = ({ message, user, currentUser }) => {
+interface Props {
+  message: IMessage;
+  user: IUser;
+  currentUser: IUser;
+}
+
+const MessagesItem = ({ message, user, currentUser }: Props) => {
   const isSender = message.sender === currentUser.name;
 
   return (

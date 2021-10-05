@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { io } from "socket.io-client";
+import { useEffect, useRef, useState } from "react";
+import { io, Socket } from "socket.io-client";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Grid, Toolbar } from "@mui/material";
@@ -10,20 +10,18 @@ import Header from "../Header/Header";
 import Sidebar from "../Sidebar/Sidebar";
 import MessagesList from "../MessagesList/MessagesList";
 import SendForm from "../SendForm/SendForm";
-
+import { IUser, IMessage } from "../../interfaces";
 const drawerWidth = { xs: 320, sm: 360 };
 
 const Chat = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [socket, setSocket] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [currentUser, setCurrentUser] = useState({});
-  const [onlineUsers, setOnlineUsers] = useState([]);
-  const [allUsers, setAllUsers] = useState([]);
-  const [counter, setCounter] = useState(0);
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [messages, setMessages] = useState<IMessage[]>([]);
+  const [currentUser, setCurrentUser] = useState<IUser | null>(null);
+  const [onlineUsers, setOnlineUsers] = useState<IUser[]>([]);
+  const [allUsers, setAllUsers] = useState<IUser[]>([]);
   const history = useHistory();
-  const inputRef = useRef();
-  const messagesContainerRef = useRef();
+  const messagesContainerRef = useRef<HTMLDivElement>();
 
   useEffect(() => {
     const socket = io(
@@ -34,50 +32,38 @@ const Chat = () => {
   }, []);
 
   useEffect(() => {
+    if (!messagesContainerRef.current) {
+      return;
+    }
+
     messagesContainerRef.current.scrollTop =
       messagesContainerRef.current.scrollHeight;
   }, [messages]);
 
   useEffect(() => {
-    if (counter === 0) {
-      inputRef.current.placeholder = "Message";
+    socket?.on("connection", (user: IUser) => {
+      console.log(user);
 
-      setCurrentUser((currentUser) => ({ ...currentUser, isMuted: false }));
-
-      return;
-    }
-
-    inputRef.current.placeholder = `Wait ${counter} seconds before sending the next message`;
-
-    const timerId = setTimeout(() => {
-      setCounter((counter) => (counter -= 1));
-    }, 1000);
-
-    return () => {
-      clearTimeout(timerId);
-    };
-  }, [counter]);
-
-  useEffect(() => {
-    socket?.on("connection", ({ user }) => {
       setCurrentUser(user);
     });
 
-    socket?.on("message", (message) => {
-      if (!message.body) return;
+    socket?.on("message", (message: IMessage) => {
+      if (!message.body) {
+        return;
+      }
 
       setMessages((state) => [...state, message]);
     });
 
-    socket?.on("messages", (messages) => {
+    socket?.on("messages", (messages: IMessage[]) => {
       setMessages(messages);
     });
 
-    socket?.on("allUsers", (users) => {
+    socket?.on("allUsers", (users: IUser[]) => {
       setAllUsers(users);
     });
 
-    socket?.on("onlineUsers", (users) => {
+    socket?.on("onlineUsers", (users: IUser[]) => {
       setOnlineUsers(users);
     });
 
@@ -92,10 +78,8 @@ const Chat = () => {
   }, [socket]);
 
   useEffect(() => {
-    inputRef.current.focus();
-
-    socket?.on("ban", (user) => {
-      const shouldDisconnect = user.isBanned && currentUser._id === user._id;
+    socket?.on("ban", (user: IUser) => {
+      const shouldDisconnect = user.isBanned && currentUser?._id === user._id;
 
       if (shouldDisconnect) {
         sessionStorage.removeItem("token");
@@ -104,10 +88,11 @@ const Chat = () => {
       }
     });
 
-    socket?.on("mute", (user) => {
+    socket?.on("mute", (user: IUser) => {
       // console.log(user);
       // setCurrentUser(user);
-      const shouldMute = currentUser._id === user._id;
+      const shouldMute = currentUser?._id === user._id;
+
       if (shouldMute) {
         const newUser = { ...currentUser, isMuted: user.isMuted };
 
@@ -131,27 +116,27 @@ const Chat = () => {
     history.push("/");
   };
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-
-    const messageForm = e.currentTarget;
-    const value = messageForm.elements.message.value;
+  const handleSendMessage = (text: string): boolean => {
+    if (!socket) {
+      return false;
+    }
 
     const time = format(new Date(), "p");
 
     const message = {
-      userId: currentUser._id,
-      sender: currentUser.name,
-      body: value,
+      userId: currentUser?._id,
+      sender: currentUser?.name,
+      body: text,
       time,
     };
 
-    socket?.emit("message", message);
+    try {
+      socket.emit("message", message);
 
-    messageForm.reset();
-
-    setCounter(15);
-    setCurrentUser({ ...currentUser, isMuted: true });
+      return true;
+    } catch (e) {
+      return false;
+    }
   };
 
   const handleDrawerToggle = () => {
@@ -188,7 +173,7 @@ const Chat = () => {
 
         <Grid container>
           <Grid
-            ref={messagesContainerRef}
+            // ref={messagesContainerRef}
             item
             xs={12}
             sx={{
@@ -202,7 +187,7 @@ const Chat = () => {
             <MessagesList
               messages={messages}
               onlineUsers={onlineUsers}
-              currentUser={currentUser}
+              currentUser={currentUser!}
             />
           </Grid>
 
@@ -210,8 +195,7 @@ const Chat = () => {
             <SendForm
               onSendMessage={handleSendMessage}
               drawerWidth={drawerWidth}
-              inputRef={inputRef}
-              currentUser={currentUser}
+              muted={currentUser?.isMuted}
             />
           </Grid>
         </Grid>

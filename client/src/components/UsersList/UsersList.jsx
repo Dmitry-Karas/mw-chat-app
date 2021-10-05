@@ -1,7 +1,7 @@
 import UsersItem from "../UsersItem/UsersItem";
 
 const UsersList = ({ currentUser, allUsers, onlineUsers, socket }) => {
-  const isAdmin = currentUser.role === "admin";
+  const isAdmin = currentUser?.role === "admin";
 
   const usersItemMarkup = (user, onlineUser) => (
     <UsersItem

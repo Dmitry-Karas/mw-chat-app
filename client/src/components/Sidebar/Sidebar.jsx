@@ -25,11 +25,11 @@ const Sidebar = ({
       <List>
         <ListItem>
           <ListItemIcon>
-            <Avatar sx={{ bgcolor: currentUser.color }}>
-              {currentUser.name?.slice(0, 1).toUpperCase()}
+            <Avatar sx={{ bgcolor: currentUser?.color }}>
+              {currentUser?.name?.slice(0, 1).toUpperCase()}
             </Avatar>
           </ListItemIcon>
-          <ListItemText primary={currentUser.name} />
+          <ListItemText primary={currentUser?.name} />
         </ListItem>
       </List>
       <Divider />

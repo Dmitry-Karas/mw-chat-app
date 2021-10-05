@@ -3,7 +3,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 
 interface Props {
-  drawerWidth: { xs: number; sm: number };
+  drawerWidth: { [key: string]: number };
   onDrawerToggle(): void;
   handleLogout(): void;
 }

@@ -69,14 +69,12 @@ io.use((socket, next) => {
   console.log(`user ${socket.user.name} connected. SocketID: ${socket.id}`);
 
   socket.emit("connection", {
-    user: {
-      _id: socket.user._id,
-      name: socket.user.name,
-      role: socket.user.role,
-      isBanned: socket.user.isBanned,
-      isMuted: socket.user.isMuted,
-      color: socket.user.color,
-    },
+    _id: socket.user._id,
+    name: socket.user.name,
+    role: socket.user.role,
+    isBanned: socket.user.isBanned,
+    isMuted: socket.user.isMuted,
+    color: socket.user.color,
   });
 
   io.emit(
