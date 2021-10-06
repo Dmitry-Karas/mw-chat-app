@@ -1,6 +1,11 @@
-import { Redirect, Route } from "react-router-dom";
+import { Redirect, Route, RouteProps } from "react-router-dom";
 
-const PublicRoute = ({
+interface Props extends RouteProps {
+  restricted: boolean;
+  redirectTo: string;
+}
+
+const PublicRoute: React.FC<Props> = ({
   children,
   restricted = false,
   redirectTo = "/chat",

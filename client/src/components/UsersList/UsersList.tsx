@@ -1,5 +1,5 @@
 import React from "react";
-import UsersItem from "../UsersItem/UsersItem.jsx";
+import UsersItem from "../UsersItem/UsersItem";
 import { IUser } from "../../interfaces";
 import { Socket } from "socket.io-client";
 
