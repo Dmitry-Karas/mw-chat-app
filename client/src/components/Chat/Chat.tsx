@@ -15,7 +15,7 @@ import { IUser, IMessage } from "../../interfaces";
 const drawerWidth = { xs: 320, sm: 360 };
 
 const Chat = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState<boolean>(false);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [currentUser, setCurrentUser] = useState<IUser | null>(null);

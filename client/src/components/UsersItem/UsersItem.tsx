@@ -6,8 +6,17 @@ import DoNotDisturbOnIcon from "@mui/icons-material/DoNotDisturbOn";
 import DoNotDisturbOffIcon from "@mui/icons-material/DoNotDisturbOff";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
+import { IUser } from "../../interfaces";
+import { Socket } from "socket.io-client";
 
-const UsersItem = ({ user, onlineUser, isAdmin, socket }) => {
+interface Props {
+  user: IUser;
+  onlineUser: IUser;
+  isAdmin: boolean;
+  socket: Socket | null;
+}
+
+const UsersItem: React.FC<Props> = ({ user, onlineUser, isAdmin, socket }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isBanned, setIsBanned] = useState(false);
 
@@ -16,12 +25,12 @@ const UsersItem = ({ user, onlineUser, isAdmin, socket }) => {
     setIsBanned(user.isBanned);
   }, [user.isBanned, user.isMuted]);
 
-  const handleAction = (action) => {
+  const handleAction = (action: string) => {
     if (user.role === "admin") {
       return alert(`You cannot ${action} admin`);
     }
 
-    socket.emit(action, user._id);
+    socket?.emit(action, user._id);
 
     switch (action) {
       case "ban":
@@ -36,25 +45,6 @@ const UsersItem = ({ user, onlineUser, isAdmin, socket }) => {
         return console.log("Unknown action");
     }
   };
-
-  // const handleMute = () => {
-  //   if (user.role === "admin") {
-  //     return alert("You cannot mute admin");
-  //   }
-
-  //   socket.emit("mute", user._id);
-
-  //   setIsMuted(!isMuted);
-  // };
-
-  // const handleBan = () => {
-  //   if (user.role === "admin") {
-  //     return alert("You cannot ban admin");
-  //   }
-  //   socket.emit("ban", user._id);
-
-  //   setIsBanned(!isBanned);
-  // };
 
   return (
     <ListItem>
@@ -74,7 +64,10 @@ const UsersItem = ({ user, onlineUser, isAdmin, socket }) => {
         </Typography>
       </ListItemText>
 
-      <ListItemText secondary={onlineUser && "online"} align="right" />
+      <ListItemText
+        secondary={onlineUser && "online"}
+        sx={{ textAlign: "right" }}
+      />
 
       {isAdmin && (
         <>
