@@ -8,11 +8,11 @@ import {
 import { Grid, IconButton, TextField } from "@mui/material";
 import { Box } from "@mui/system";
 import SendIcon from "@mui/icons-material/Send";
-import { IUser } from "../../interfaces";
+import { DrawerWidth } from "../../types";
 
 interface Props {
   onSendMessage: (text: string) => boolean;
-  drawerWidth: Record<string, number>;
+  drawerWidth: DrawerWidth;
   muted: boolean | undefined;
 }
 

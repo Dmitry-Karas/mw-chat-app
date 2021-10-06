@@ -1,11 +1,12 @@
 import { AppBar, IconButton, Stack, Toolbar, Typography } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import { DrawerWidth } from "../../types";
 
 interface Props {
-  drawerWidth: { [key: string]: number };
-  onDrawerToggle(): void;
-  handleLogout(): void;
+  drawerWidth: DrawerWidth;
+  onDrawerToggle: () => void;
+  handleLogout: () => void;
 }
 
 const Header = ({ drawerWidth, onDrawerToggle, handleLogout }: Props) => {
