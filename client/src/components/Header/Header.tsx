@@ -14,8 +14,8 @@ const Header = ({ drawerWidth, onDrawerToggle, handleLogout }: Props) => {
     <AppBar
       position="fixed"
       sx={{
-        width: { sm: `calc(100% - ${drawerWidth}px)` },
-        ml: { sm: `${drawerWidth}px` },
+        width: { sm: `calc(100% - ${drawerWidth.sm}px)` },
+        ml: { sm: `${drawerWidth.sm}px` },
       }}
     >
       <Toolbar>

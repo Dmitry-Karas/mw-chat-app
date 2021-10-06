@@ -11,8 +11,9 @@ import Sidebar from "../Sidebar/Sidebar";
 import MessagesList from "../MessagesList/MessagesList";
 import SendForm from "../SendForm/SendForm";
 import { IUser, IMessage } from "../../interfaces";
+import { DrawerWidth } from "../../types";
 
-const drawerWidth = { xs: 320, sm: 360 };
+const drawerWidth: DrawerWidth = { xs: 320, sm: 360 };
 
 const Chat = () => {
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
@@ -43,8 +44,6 @@ const Chat = () => {
 
   useEffect(() => {
     socket?.on("connection", (user: IUser) => {
-      console.log(user);
-
       setCurrentUser(user);
     });
 

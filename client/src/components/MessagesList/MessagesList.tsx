@@ -1,6 +1,7 @@
 import { List } from "@mui/material";
 import MessagesItem from "../MessagesItem/MessagesItem";
 import { IUser, IMessage } from "../../interfaces";
+
 interface Props {
   messages: IMessage[];
   onlineUsers: IUser[];
@@ -12,7 +13,6 @@ const MessagesList = ({ messages, onlineUsers, currentUser }: Props) => {
     <List>
       {messages.map((message) => {
         const user = onlineUsers.find((user) => user._id === message.userId);
-        console.log(message._id);
 
         return (
           <MessagesItem

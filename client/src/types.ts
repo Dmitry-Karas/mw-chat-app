@@ -1,1 +1,4 @@
-export type DrawerWidth = Record<string, number>;
+export type DrawerWidth = {
+  xs: number;
+  sm: number;
+};
