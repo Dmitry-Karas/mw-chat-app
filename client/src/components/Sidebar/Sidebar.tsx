@@ -9,9 +9,22 @@ import {
   ListItemText,
 } from "@mui/material";
 import { Box } from "@mui/system";
+import { Socket } from "socket.io-client";
 import UsersList from "../UsersList/UsersList";
+import { DrawerWidth } from "../../types";
+import { IUser } from "../../interfaces";
 
-const Sidebar = ({
+interface Props {
+  drawerWidth: DrawerWidth;
+  mobileOpen: boolean;
+  onDrawerToggle: () => void;
+  currentUser: IUser | null;
+  allUsers: IUser[];
+  onlineUsers: IUser[];
+  socket: Socket | null;
+}
+
+const Sidebar: React.FC<Props> = ({
   drawerWidth,
   mobileOpen,
   onDrawerToggle,
