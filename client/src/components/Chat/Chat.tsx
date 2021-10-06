@@ -11,6 +11,7 @@ import Sidebar from "../Sidebar/Sidebar";
 import MessagesList from "../MessagesList/MessagesList";
 import SendForm from "../SendForm/SendForm";
 import { IUser, IMessage } from "../../interfaces";
+
 const drawerWidth = { xs: 320, sm: 360 };
 
 const Chat = () => {
@@ -21,7 +22,7 @@ const Chat = () => {
   const [onlineUsers, setOnlineUsers] = useState<IUser[]>([]);
   const [allUsers, setAllUsers] = useState<IUser[]>([]);
   const history = useHistory();
-  const messagesContainerRef = useRef<HTMLDivElement>();
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const socket = io(
@@ -173,7 +174,7 @@ const Chat = () => {
 
         <Grid container>
           <Grid
-            // ref={messagesContainerRef}
+            ref={messagesContainerRef}
             item
             xs={12}
             sx={{
