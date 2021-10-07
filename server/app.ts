@@ -24,8 +24,8 @@ import { Message, User } from "./models";
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: process.env.FRONTEND_URL } });
-const liveSockets = io.sockets.sockets;
 const PORT = process.env.PORT || 3333;
+const liveSockets: Map<string, ISocket> = io.sockets.sockets;
 
 interface IUser {
   _id: string;
@@ -76,7 +76,7 @@ io.use((socket: ISocket, next) => {
 
       socket.lastMessage = lastMessage?.createdAt?.getTime();
 
-      liveSockets.forEach((liveSocket: ISocket) => {
+      liveSockets.forEach((liveSocket) => {
         if (liveSocket?.user?._id.toString() === socket?.user?._id.toString()) {
           liveSocket.disconnect();
         }
@@ -112,7 +112,7 @@ io.use((socket: ISocket, next) => {
     }
 
     const currentTime = Date.now();
-    const diff = Math.round((currentTime - socket.lastMessage) / 1000);
+    const diff = Math.round((currentTime - (socket?.lastMessage || 0)) / 1000);
 
     if (diff < 15 || message.body.length > 200) {
       return;
@@ -143,29 +143,22 @@ io.use((socket: ISocket, next) => {
   socket.emit("allUsers", await User.find());
 
   socket.on("mute", async (userId) => {
-    // liveSockets.forEach(async (socket) => {
-    //   if (socket.user._id.toString() === userId) {
-    //     socket.user.isMuted = !socket.user.isMuted;
-    //   }
-
-    //   io.to(socket.id).emit("mute", socket.user);
-
-    // await User.findByIdAndUpdate(
-    //   userId,
-    //   { isMuted: !socket.user.isMuted },
-    //   { new: true }
-    // );
-    // });
-
     const user = await User.findById(userId);
 
-    io.emit(
-      "mute",
-      await User.findByIdAndUpdate(
-        userId,
-        { isMuted: !user?.isMuted },
-        { new: true }
-      )
+    liveSockets.forEach(async (socket) => {
+      if (!socket.user) {
+        return;
+      }
+
+      if (socket.user._id.toString() === userId) {
+        io.to(socket.id).emit("mute", !user?.isMuted);
+      }
+    });
+
+    await User.findByIdAndUpdate(
+      userId,
+      { isMuted: !user?.isMuted },
+      { new: true }
     );
   });
 
@@ -174,7 +167,7 @@ io.use((socket: ISocket, next) => {
 
     io.emit(
       "ban",
-      User.findByIdAndUpdate(
+      await User.findByIdAndUpdate(
         userId,
         { isBanned: !user?.isBanned },
         { new: true }

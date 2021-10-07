@@ -88,16 +88,12 @@ const Chat = () => {
       }
     });
 
-    socket?.on("mute", (user: IUser) => {
-      // console.log(user);
-      // setCurrentUser(user);
-      const shouldMute = currentUser?._id === user._id;
-
-      if (shouldMute) {
-        const newUser = { ...currentUser, isMuted: user.isMuted };
-
-        setCurrentUser(newUser);
+    socket?.on("mute", (isMuted) => {
+      if (!currentUser) {
+        return;
       }
+
+      setCurrentUser({ ...currentUser, isMuted });
     });
 
     socket?.on("disconnect", handleLogout);
