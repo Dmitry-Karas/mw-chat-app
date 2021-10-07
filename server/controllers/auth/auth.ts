@@ -1,14 +1,29 @@
-const { User } = require("../../models");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+// const { User } = require("../../models");
+// const bcrypt = require("bcryptjs");
+// const jwt = require("jsonwebtoken");
 
-const generateSuccessToken = (user) => {
-  return jwt.sign(user.toJSON(), process.env.JWT_SECRET_KEY, {
+import bcrypt from "bcryptjs";
+import jwt, { Secret } from "jsonwebtoken";
+import { Document } from "mongoose";
+import { Request, Response } from "express";
+
+import { User } from "../../models";
+
+interface IUser extends Document {
+  name: string;
+  password: string;
+  role: string;
+  isBanned: boolean;
+  isMuted: boolean;
+}
+
+const generateSuccessToken = (user: IUser) => {
+  return jwt.sign(user.toJSON(), process.env.JWT_SECRET_KEY as Secret, {
     expiresIn: "24h",
   });
 };
 
-const auth = async (req, res) => {
+export const auth = async (req: Request, res: Response) => {
   try {
     const { name, password } = req.body;
 
@@ -61,7 +76,7 @@ const auth = async (req, res) => {
       isMuted,
       token,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log(error.message);
 
     return res
@@ -70,4 +85,5 @@ const auth = async (req, res) => {
   }
 };
 
-module.exports = auth;
+// module.exports = auth;
+// export { auth };

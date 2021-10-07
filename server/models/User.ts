@@ -1,7 +1,17 @@
-const Joi = require("joi");
-const { Schema, model } = require("mongoose");
+// const Joi = require("joi");
+// const { Schema, model } = require("mongoose");
+import Joi from "joi";
+import { Schema, model } from "mongoose";
 
-const userSchema = new Schema(
+interface IUser {
+  name: string;
+  password: string;
+  role: string;
+  isBanned: boolean;
+  isMuted: boolean;
+}
+
+const userSchema = new Schema<IUser>(
   {
     name: {
       type: String,
@@ -28,14 +38,16 @@ const userSchema = new Schema(
       default: false,
     },
   },
-  { versionKey: false, timestamp: true }
+  { versionKey: false, timestamps: true }
 );
 
-const joiUserSchema = Joi.object({
+export const joiUserSchema = Joi.object({
   name: Joi.string().alphanum().min(3).max(30).required(),
   password: Joi.string().required(),
 });
 
-const User = model("User", userSchema);
+export const User = model<IUser>("User", userSchema);
 
-module.exports = { User, joiUserSchema };
+// export { User, joiUserSchema };
+
+// module.exports = { User, joiUserSchema };
