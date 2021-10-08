@@ -11,7 +11,7 @@ import { Socket } from "socket.io-client";
 
 interface Props {
   user: IUser;
-  onlineUser: IUser;
+  onlineUser: IUser | null;
   isAdmin: boolean;
   socket: Socket | null;
 }
