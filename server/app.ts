@@ -151,7 +151,13 @@ io.use((socket: ISocket, next) => {
       }
 
       if (socket.user._id.toString() === userId) {
+        socket.user.isMuted = !user?.isMuted;
+
         io.to(socket.id).emit("mute", !user?.isMuted);
+        io.emit(
+          "onlineUsers",
+          [...liveSockets].map((s) => s[1].user)
+        );
       }
     });
 
@@ -165,13 +171,20 @@ io.use((socket: ISocket, next) => {
   socket.on("ban", async (userId) => {
     const user = await User.findById(userId);
 
-    io.emit(
-      "ban",
-      await User.findByIdAndUpdate(
-        userId,
-        { isBanned: !user?.isBanned },
-        { new: true }
-      )
+    liveSockets.forEach(async (socket) => {
+      if (!socket.user) {
+        return;
+      }
+
+      if (socket.user._id.toString() === userId) {
+        io.to(socket.id).emit("ban", !user?.isBanned);
+      }
+    });
+
+    await User.findByIdAndUpdate(
+      userId,
+      { isBanned: !user?.isBanned },
+      { new: true }
     );
   });
 });

@@ -64,6 +64,10 @@ const UsersItem: React.FC<Props> = ({ user, onlineUser, isAdmin, socket }) => {
         </Typography>
       </ListItemText>
 
+      {isMuted && !isAdmin && (
+        <ListItemText secondary={"(muted)"} sx={{ textAlign: "right" }} />
+      )}
+
       <ListItemText
         secondary={onlineUser && "online"}
         sx={{ textAlign: "right" }}

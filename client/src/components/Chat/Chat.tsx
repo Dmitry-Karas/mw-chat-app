@@ -78,17 +78,15 @@ const Chat = () => {
   }, [socket]);
 
   useEffect(() => {
-    socket?.on("ban", (user: IUser) => {
-      const shouldDisconnect = user.isBanned && currentUser?._id === user._id;
-
-      if (shouldDisconnect) {
-        sessionStorage.removeItem("token");
-        socket?.disconnect();
-        history.push("/");
+    socket?.on("ban", (isBanned: boolean) => {
+      if (!isBanned) {
+        return;
       }
+
+      handleLogout();
     });
 
-    socket?.on("mute", (isMuted) => {
+    socket?.on("mute", (isMuted: boolean) => {
       if (!currentUser) {
         return;
       }
