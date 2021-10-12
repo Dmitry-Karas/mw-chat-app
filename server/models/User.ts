@@ -1,5 +1,3 @@
-// const Joi = require("joi");
-// const { Schema, model } = require("mongoose");
 import Joi from "joi";
 import { Schema, model } from "mongoose";
 
@@ -47,7 +45,3 @@ export const joiUserSchema = Joi.object({
 });
 
 export const User = model<IUser>("User", userSchema);
-
-// export { User, joiUserSchema };
-
-// module.exports = { User, joiUserSchema };

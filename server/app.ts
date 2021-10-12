@@ -1,15 +1,3 @@
-// require("dotenv").config();
-// const cors = require("cors");
-// const mongoose = require("mongoose");
-// const express = require("express");
-// const http = require("http");
-// const { Server } = require("socket.io");
-// const jwt = require("jsonwebtoken");
-
-// const authRouter = require("./router/authRouter");
-// const { Message } = require("./models");
-// const { User } = require("./models");
-
 import "dotenv/config";
 import cors from "cors";
 import mongoose, { Document, ObjectId } from "mongoose";

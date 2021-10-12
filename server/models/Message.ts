@@ -1,4 +1,3 @@
-// const { Schema, model } = require("mongoose");
 import { Schema, model } from "mongoose";
 
 interface IMessage {
@@ -27,6 +26,3 @@ const messageSchema = new Schema(
 );
 
 export const Message = model<IMessage>("Message", messageSchema);
-
-// module.exports = { Message };
-// export default { Message };

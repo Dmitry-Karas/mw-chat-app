@@ -1,7 +1,3 @@
-// const { User } = require("../../models");
-// const bcrypt = require("bcryptjs");
-// const jwt = require("jsonwebtoken");
-
 import bcrypt from "bcryptjs";
 import jwt, { Secret } from "jsonwebtoken";
 import { Document } from "mongoose";
@@ -84,6 +80,3 @@ export const auth = async (req: Request, res: Response) => {
       .json({ status: "error", code: 400, message: error.message });
   }
 };
-
-// module.exports = auth;
-// export { auth };
