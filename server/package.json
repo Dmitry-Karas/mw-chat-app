@@ -15,7 +15,9 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.0.7",
     "mysql2": "^2.3.0",
-    "socket.io": "^4.2.0"
+    "reflect-metadata": "^0.1.13",
+    "socket.io": "^4.2.0",
+    "typeorm": "^0.2.38"
   },
   "scripts": {
     "start": "ts-node app.ts",

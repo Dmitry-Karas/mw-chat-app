@@ -4,6 +4,7 @@ import { Document } from "mongoose";
 import { Request, Response } from "express";
 
 import { User } from "../../models";
+import { userRepo } from "../../app";
 
 interface IUser extends Document {
   name: string;
@@ -23,7 +24,8 @@ export const auth = async (req: Request, res: Response) => {
   try {
     const { name, password } = req.body;
 
-    let user = await User.findOne({ name }); // Ищем пользователя в базе
+    // let user = await User.findOne({ name }); // Ищем пользователя в базе
+    let user = await userRepo.findOne({ name }); // Ищем пользователя в базе
 
     // Если пользователь существует, входим в систему
 
@@ -40,7 +42,8 @@ export const auth = async (req: Request, res: Response) => {
     } else {
       const hashPassword = bcrypt.hashSync(password, 7); // Хешируем пароль
 
-      const usersCount = await User.count();
+      // const usersCount = await User.count();
+      const usersCount = await userRepo.count();
 
       // Если пользователь первый в базе, делаем админом
 
@@ -54,11 +57,13 @@ export const auth = async (req: Request, res: Response) => {
         isMuted: false,
       });
 
-      user = await newUser.save();
+      user = await userRepo.save(newUser);
+      // user = await newUser.save();
     }
 
     const { _id, role, isBanned, isMuted } = user;
-    const token = generateSuccessToken(user);
+    // const token = generateSuccessToken(user);
+    console.log(user);
 
     if (isBanned) {
       throw new Error("You are banned");
@@ -70,7 +75,7 @@ export const auth = async (req: Request, res: Response) => {
       role,
       isBanned,
       isMuted,
-      token,
+      // token,
     });
   } catch (error: any) {
     console.log(error.message);
