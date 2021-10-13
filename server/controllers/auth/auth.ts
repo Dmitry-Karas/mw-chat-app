@@ -1,12 +1,11 @@
 import bcrypt from "bcryptjs";
-import jwt, { Secret } from "jsonwebtoken";
-import { Document } from "mongoose";
+import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
+import { getConnection } from "typeorm";
 
 import { User } from "../../models";
-import { userRepo } from "../../app";
 
-interface IUser extends Document {
+interface IUser {
   name: string;
   password: string;
   role: string;
@@ -14,8 +13,11 @@ interface IUser extends Document {
   isMuted: boolean;
 }
 
-const generateSuccessToken = (user: IUser) => {
-  return jwt.sign(user.toJSON(), process.env.JWT_SECRET_KEY as Secret, {
+const connection = getConnection();
+const userRepo = connection.getRepository(User);
+
+const generateSuccessToken = ({ ...user }: IUser) => {
+  return jwt.sign(user, String(process.env.JWT_SECRET_KEY), {
     expiresIn: "24h",
   });
 };
@@ -24,7 +26,6 @@ export const auth = async (req: Request, res: Response) => {
   try {
     const { name, password } = req.body;
 
-    // let user = await User.findOne({ name }); // Ищем пользователя в базе
     let user = await userRepo.findOne({ name }); // Ищем пользователя в базе
 
     // Если пользователь существует, входим в систему
@@ -41,14 +42,8 @@ export const auth = async (req: Request, res: Response) => {
       }
     } else {
       const hashPassword = bcrypt.hashSync(password, 7); // Хешируем пароль
-
-      // const usersCount = await User.count();
       const usersCount = await userRepo.count();
-
-      // Если пользователь первый в базе, делаем админом
-
-      const userRole = usersCount === 0 ? "admin" : "user";
-
+      const userRole = usersCount === 0 ? "admin" : "user"; // Если пользователь первый в базе, делаем админом
       const newUser = new User({
         name,
         password: hashPassword,
@@ -58,12 +53,10 @@ export const auth = async (req: Request, res: Response) => {
       });
 
       user = await userRepo.save(newUser);
-      // user = await newUser.save();
     }
 
     const { _id, role, isBanned, isMuted } = user;
-    // const token = generateSuccessToken(user);
-    console.log(user);
+    const token = generateSuccessToken(user);
 
     if (isBanned) {
       throw new Error("You are banned");
@@ -75,7 +68,7 @@ export const auth = async (req: Request, res: Response) => {
       role,
       isBanned,
       isMuted,
-      // token,
+      token,
     });
   } catch (error: any) {
     console.log(error.message);
