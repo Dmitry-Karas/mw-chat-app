@@ -1,9 +1,8 @@
 import Joi from "joi";
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { IsDefined, MaxLength, MinLength } from "class-validator";
+import { Entity, PrimaryGeneratedColumn, Column, Index } from "typeorm";
 
-// import { Schema, model } from "mongoose";
-
-@Entity()
+@Entity("users")
 export class User {
   constructor(payload: Partial<User>) {
     Object.assign(this, payload);
@@ -12,21 +11,32 @@ export class User {
   @PrimaryGeneratedColumn("uuid")
   _id: string;
 
-  @Column({})
+  @Column()
+  @IsDefined()
+  @MinLength(3)
+  @MaxLength(30)
+  @Index({ unique: true })
   name: string;
 
   @Column()
+  @IsDefined()
   password: string;
 
   @Column()
+  @IsDefined()
   role: string;
 
-  @Column()
+  @Column({ default: false })
   isBanned: boolean;
 
-  @Column()
+  @Column({ default: false })
   isMuted: boolean;
 }
+
+export const joiUserSchema = Joi.object({
+  name: Joi.string().alphanum().min(3).max(30).required(),
+  password: Joi.string().required(),
+});
 
 // interface IUser {
 //   name: string;
@@ -65,10 +75,5 @@ export class User {
 //   },
 //   { versionKey: false, timestamps: true }
 // );
-
-export const joiUserSchema = Joi.object({
-  name: Joi.string().alphanum().min(3).max(30).required(),
-  password: Joi.string().required(),
-});
 
 // export const User = model<IUser>("User", userSchema);
