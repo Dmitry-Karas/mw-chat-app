@@ -9,6 +9,7 @@ import { createConnection } from "typeorm";
 
 // import { authRouter } from "./router/authRouter";
 import { Message, User } from "./models";
+import { validate } from "class-validator";
 
 interface IUser {
   _id: string;
@@ -137,6 +138,14 @@ const liveSockets: Map<string, ISocket> = io.sockets.sockets;
         }
 
         const newMessage = new Message(message);
+
+        const errors = await validate(newMessage);
+
+        if (errors && errors.length > 0) {
+          console.log(errors);
+
+          throw new Error(`Validation failed!`);
+        }
 
         socket.lastMessage = currentTime;
 
