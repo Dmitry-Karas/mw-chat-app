@@ -115,6 +115,18 @@ const Chat = () => {
       return false;
     }
 
+    if (text.length < 1) {
+      alert("Type something for send the message");
+
+      return false;
+    }
+
+    if (text.length > 200) {
+      alert("Too long message");
+
+      return false;
+    }
+
     const time = format(new Date(), "p");
 
     const message = {
