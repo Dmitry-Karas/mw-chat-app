@@ -39,7 +39,7 @@ const liveSockets: Map<string, ISocket> = io.sockets.sockets;
       username: process.env.MYSQL_USER,
       database: process.env.MYSQL_DB,
       password: process.env.MYSQL_PASSWORD,
-      entities: [User, Message],
+      entities: [`${__dirname}/models/*.ts`],
       synchronize: true,
     });
 
@@ -132,7 +132,7 @@ const liveSockets: Map<string, ISocket> = io.sockets.sockets;
           (currentTime - (socket?.lastMessage || 0)) / 1000
         );
 
-        if (diff < 15 || message.body.length > 200) {
+        if (diff < 15 || message.body.length < 1 || message.body.length > 200) {
           return;
         }
 
