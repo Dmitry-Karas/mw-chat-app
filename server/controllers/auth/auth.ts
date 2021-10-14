@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import { getConnection } from "typeorm";
 
 import { User } from "../../models";
+import { validate } from "class-validator";
 
 interface IUser {
   name: string;
@@ -51,6 +52,12 @@ export const auth = async (req: Request, res: Response) => {
         isBanned: false,
         isMuted: false,
       });
+
+      const errors = await validate(newUser);
+
+      if (errors && errors.length > 0) {
+        throw new Error(`Validation failed!`);
+      }
 
       user = await userRepo.save(newUser);
     }
